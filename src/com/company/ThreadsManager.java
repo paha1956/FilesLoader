@@ -24,11 +24,7 @@ public class ThreadsManager {
             return 0;
         }
 
-        int numThreads;
-        if (m_linksParser.getLinksList().size() > m_argsParser.getNumThreads())
-            numThreads = m_argsParser.getNumThreads();
-        else
-            numThreads = m_linksParser.getLinksList().size();
+        int numThreads = Math.min(m_argsParser.getNumThreads(), m_linksParser.getLinksList().size());
 
         int threadCounter;
         for (threadCounter = 0; threadCounter < numThreads; threadCounter++) {

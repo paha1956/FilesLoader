@@ -1,10 +1,8 @@
 package com.company;
 
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -73,7 +71,6 @@ public class FileLoader extends Thread {
         }
     }
 
-    
     private String sizeConverter(long size) {
         if (size < 0) return "-1 байт";
         String[] lb = {" байт", " кБайт", " МБайт", " ГБайт"};
