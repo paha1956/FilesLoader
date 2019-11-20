@@ -11,11 +11,23 @@ public class FileLoader extends Thread {
     private int m_treadID;
     private LinksParser m_linksParser;
     private ArgsParser m_argsParser;
+    private long m_filesSize;
+    private long m_filesLoadTime;
 
     public FileLoader(int treadID, LinksParser linksParser, ArgsParser argsParser) {
         m_treadID = treadID;
         m_linksParser = linksParser;
         m_argsParser = argsParser;
+        m_filesSize = 0;
+        m_filesLoadTime = 0;
+    }
+
+    public long getFilesSize() {
+        return m_filesSize;
+    }
+
+    public long getFilesLoadTime() {
+        return m_filesLoadTime;
     }
 
     @Override
@@ -24,6 +36,7 @@ public class FileLoader extends Thread {
         List<OutputStream> outputStreamList = new ArrayList<>();
         LinkList loadLink;
         while ((loadLink = m_linksParser.getNextLink()) != null) {
+            long opTime = 0;
             long begTime = System.currentTimeMillis();
             long fileSize = 0;
 
@@ -36,14 +49,13 @@ public class FileLoader extends Thread {
                 }
                 System.out.println("Поток" + m_treadID + ". Загрузка файла: " + loadLink.getLink() + " в файлы" + collectNames);
 
-                URL url = null;
-                url = new URL(loadLink.getLink());
+                URL url = new URL(loadLink.getLink());
                 URLConnection urlConnection = url.openConnection();
                 urlConnection.setDoInput(true);
                 InputStream inputStream = urlConnection.getInputStream();
 
-                int bufferSize = 64000;
-                byte readBuffer[] = new byte[bufferSize];
+                final int bufferSize = 64000;
+                byte[] readBuffer = new byte[bufferSize];
                 do {
                     int availableSize = inputStream.available();
                     if (availableSize > bufferSize) availableSize = bufferSize;
@@ -61,17 +73,21 @@ public class FileLoader extends Thread {
                 }
 
                 inputStream.close();
+                opTime = System.currentTimeMillis() - begTime;
                 DateFormat timeFormat = new SimpleDateFormat("HHч mmмин ssсек.");
                 timeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-                System.out.println("Файл " + loadLink.getLink() + " загружен: " + sizeConverter(fileSize) + " за " + timeFormat.format(new Date(System.currentTimeMillis() - begTime)));
+                System.out.println("Файл " + loadLink.getLink() + " загружен: " + sizeConverter(fileSize) + " за " + timeFormat.format(new Date(opTime)));
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            m_filesSize += fileSize;
+            m_filesLoadTime += opTime;
         }
     }
 
-    private String sizeConverter(long size) {
+    public static String sizeConverter(long size) {
         if (size < 0) return "-1 байт";
         String[] lb = {" байт", " кБайт", " МБайт", " ГБайт"};
         int index = 0;

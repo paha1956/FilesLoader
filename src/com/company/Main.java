@@ -8,7 +8,7 @@ import static com.company.ArgsParser.ARGS_HELP;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         // write your code here
 
         ArgsParser argsParser = new ArgsParser(args);
@@ -32,8 +32,7 @@ public class Main {
 
             case ARGS_ERROR: {
                 System.out.println("Ошибка параметров:");
-                ArrayList <String> errorList = new ArrayList <> ();
-                errorList = argsParser.getErrors();
+                ArrayList <String> errorList = argsParser.getErrors();
                 for (String error: errorList) {
                     System.out.println(error);
                 }

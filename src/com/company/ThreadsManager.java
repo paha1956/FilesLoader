@@ -7,7 +7,7 @@ public class ThreadsManager {
 
     private ArgsParser m_argsParser;
     private int m_numThreads;
-    private ArrayList<Thread> m_threadList;
+    private ArrayList<FileLoader> m_threadList;
     private LinksParser m_linksParser;
 
     public ThreadsManager(ArgsParser argsParser) {
@@ -36,7 +36,18 @@ public class ThreadsManager {
         return threadCounter;
     }
 
-    public void threadsManage() {
+    public void threadsManage() throws InterruptedException {
+        long totalTime = 0;
+        long totalSize  = 0;
+        for (FileLoader loader:m_threadList) {
+            loader.join();
+            totalSize += loader.getFilesSize();
+            totalTime += loader.getFilesLoadTime();
+        }
+
+        System.out.println("Загружено: " + 10 + " файлов, " + totalSize + " байт");
+        System.out.println("Время: " + totalTime/1000 + " секунд ");
+        System.out.println("Средняя скорость: " + (totalSize * 8 * 1000)/totalTime + " бит/сек");
 
     }
 }
