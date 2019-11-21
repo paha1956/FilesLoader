@@ -15,25 +15,22 @@ public class Main {
 
         switch (argsParser.getArgsProperty()) {
             case ARGS_OK: {
-                System.out.println("Количество потоков: " + argsParser.getNumThreads());
+                System.out.println("Установленное количество потоков: " + argsParser.getNumThreads());
                 System.out.println("Каталог закачки: " + argsParser.getOutDirName());
                 System.out.println("Файл со списком закачки: " + argsParser.getLinksFileName());
 
-                System.out.println("Загрузка файлов...");
                 ThreadsManager threadsManager = new ThreadsManager(argsParser);
-
                 int runingThreads = threadsManager.threadsStart();
-                System.out.println("Запущено "+ runingThreads + " потоков");
+                System.out.println("Запущено потоков: " + runingThreads + "\nНачало загрузки файлов...");
 
-                threadsManager.threadsManage();
-
+                threadsManager.threadsMonitoring();
                 break;
             }
 
             case ARGS_ERROR: {
                 System.out.println("Ошибка параметров:");
-                ArrayList <String> errorList = argsParser.getErrors();
-                for (String error: errorList) {
+                ArrayList<String> errorList = argsParser.getErrors();
+                for (String error : errorList) {
                     System.out.println(error);
                 }
                 argsParser.printHelp(false);
@@ -46,7 +43,5 @@ public class Main {
                 break;
             }
         }
-
-
     }
 }
