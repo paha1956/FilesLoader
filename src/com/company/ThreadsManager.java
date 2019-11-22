@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.CountDownLatch;
 
 public class ThreadsManager implements EventListener {
 
@@ -13,6 +14,8 @@ public class ThreadsManager implements EventListener {
     private ArrayList<FileLoader> m_threadList;
     private LinksParser m_linksParser;
     private EventHandler m_eventHandler;
+    private CountDownLatch m_threadLatch;
+
     private long m_filesSize;
     private long m_filesLoadTime;
     private int m_filesCounter;
@@ -54,10 +57,11 @@ public class ThreadsManager implements EventListener {
 
         int numThreads = Math.min(m_argsParser.getNumThreads(), m_linksParser.getLinksList().size());
         m_totalOpTime = System.currentTimeMillis();
+        m_threadLatch = new CountDownLatch(numThreads);
 
         int threadCounter;
         for (threadCounter = 0; threadCounter < numThreads; threadCounter++) {
-            FileLoader fileLoader = new FileLoader(threadCounter + 1, m_linksParser, m_argsParser, m_eventHandler);
+            FileLoader fileLoader = new FileLoader(threadCounter + 1, m_linksParser, m_argsParser, m_eventHandler, m_threadLatch);
             m_threadList.add(fileLoader);
 
             fileLoader.start();
@@ -66,20 +70,21 @@ public class ThreadsManager implements EventListener {
     }
 
     public void threadsMonitoring() throws InterruptedException {
-        for (FileLoader loader : m_threadList) {
-            loader.join();
-        }
+        if (m_threadLatch == null) return;
+        m_threadLatch.await();
 
         m_totalOpTime = System.currentTimeMillis() - m_totalOpTime;
         System.out.println("Загружено файлов: " + m_filesCounter + " объёмом " + sizeConverter(m_filesSize) + "Байт");
-        System.out.println("Время загрузки: " + m_totalOpTime / 1000 + " секунд");
+        DateFormat timeFormat = new SimpleDateFormat("HHч mmмин ssсек");
+        timeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        System.out.println("Время загрузки: " + timeFormat.format(new Date(m_totalOpTime)));
         if (m_totalOpTime > 0)
             System.out.println("Скорость многопоточной загрузки: " + sizeConverter((m_filesSize * 8 * 1000) / m_totalOpTime) + "Бит в секунду");
-        else System.out.println("Скорость многопоточной загрузки: очень быстро!");
+        else System.out.println("Скорость многопоточной загрузки: очень быстро! На самом деле, что-то пошло не так и время загрузки оказалось нулевым.");
 
         if (m_totalOpTime > 0)
-            System.out.println("Средняя физическая корость загрузки: " + sizeConverter((m_filesSize * 8 * 1000) / m_filesLoadTime) + "Бит в секунду");
-        else System.out.println("Средняя скорость загрузки: неимоверно быстро!");
+            System.out.println("Средняя физическая скорость загрузки: " + sizeConverter((m_filesSize * 8 * 1000) / m_filesLoadTime) + "Бит в секунду");
+        else System.out.println("Средняя скорость загрузки: неимоверно быстро! На самом деле, что-то пошло не так и время загрузки оказалось нулевым.");
     }
 
     private String sizeConverter(long size) {

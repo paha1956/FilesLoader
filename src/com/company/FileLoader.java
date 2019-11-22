@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 public class FileLoader extends Thread {
 
@@ -13,17 +14,19 @@ public class FileLoader extends Thread {
     private LinksParser m_linksParser;
     private ArgsParser m_argsParser;
     private EventHandler m_eventHandler;
+    private CountDownLatch m_threadLatch;
 
-    public FileLoader(int treadID, LinksParser linksParser, ArgsParser argsParser, EventHandler eventHandler) {
+
+    public FileLoader(int treadID, LinksParser linksParser, ArgsParser argsParser, EventHandler eventHandler, CountDownLatch latch) {
         m_treadID = treadID;
         m_linksParser = linksParser;
         m_argsParser = argsParser;
         m_eventHandler = eventHandler;
+        m_threadLatch = latch;
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         List<OutputStream> outputStreamList = new ArrayList<>();
         LinkList loadLink;
 
@@ -39,7 +42,7 @@ public class FileLoader extends Thread {
                     collectNames += " " + fileName;
                     outputStreamList.add(new FileOutputStream((m_argsParser.getOutDirName() + "\\" + fileName)));
                 }
-                System.out.println("Поток " + m_treadID + ". Загрузка файла: " + loadLink.getLink() + ((filesList.size() > 1)?" в файлы":" в файл") + collectNames);
+                System.out.println("Поток " + m_treadID + ". Загрузка файла: " + loadLink.getLink() + ((filesList.size() > 1) ? " в файлы" : " в файл") + collectNames);
 
                 URL url = new URL(loadLink.getLink());
                 URLConnection urlConnection = url.openConnection();
@@ -72,5 +75,7 @@ public class FileLoader extends Thread {
                 e.printStackTrace();
             }
         }
+
+        m_threadLatch.countDown();
     }
 }

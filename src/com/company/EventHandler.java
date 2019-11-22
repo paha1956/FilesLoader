@@ -9,7 +9,9 @@ public class EventHandler {
     }
 
     public void sendEvent(int threadID, String fileURL, long fileSize, long opTime) {
-        m_listener.getEvent(threadID, fileURL, fileSize, opTime);
+       synchronized (this) {
+           m_listener.getEvent(threadID, fileURL, fileSize, opTime);
+       }
     }
 
 }
