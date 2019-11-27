@@ -3,6 +3,12 @@ package com.company;
 import java.io.File;
 import java.util.ArrayList;
 
+/**
+ * Класс парсинга входных параметров программы.
+ *
+ * @version 0.1
+ * @autor Федоров Павел, гр. 124/21 ИТМО 25.11.2019
+ */
 public class ArgsParser {
 
     public static final int ARGS_OK = 1;
@@ -11,7 +17,7 @@ public class ArgsParser {
 
     private String m_args[];
     private ArrayList<String> m_errors;
-    private int m_numThreads;
+    private int m_numThreads = 0;
     private String m_outDirName;
     private String m_linksFileName;
 
@@ -40,6 +46,13 @@ public class ArgsParser {
         return m_linksFileName;
     }
 
+    /**
+     * Метод парсинга параметров
+     * @return              - результат расшифровки входных параметров:
+     *                        ARGS_OK - параметры расшифровались без ошибок;
+     *                        ARGS_ERROR - параметры содержат ошибку, содержание ошибки записывается в поле m_errors;
+     *                        ARGS_HELP - требуется вывод справки по программе
+     */
     public int getArgsProperty() {
         int res = ARGS_OK;
 
@@ -83,6 +96,12 @@ public class ArgsParser {
         return res;
     }
 
+    /**
+     * Метод вывода справки по программе
+     * @param help          - определяет формат выводимого текста:
+     *                        true - вывод формата командной строки запуска программы;
+     *                        false - вывод списка управляющих ключей
+     */
     public void printHelp(boolean help) {
         if (help) {
             System.out.println("\nФормат командной строки:\n" +

@@ -8,6 +8,17 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+/**
+ * Классы, предназначенные для получения и хранения ссылок скачиваемых из сети файлов, и имён файлов для сохранения на диск.
+ *
+ * @version 0.1
+ * @autor Федоров Павел, гр. 124/21 ИТМО 25.11.2019
+ */
+
+/**
+ * Класс хранения ссылки для скачивания.
+ * Для работы потоков используется список объектов класса LinkList.
+ */
 class LinkList {
     private String m_link;
     private ArrayList<String> m_filesList;
@@ -32,7 +43,12 @@ class LinkList {
     }
 }
 
+/**
+ * Класс парсинга ссылок для скачивания из файла ссылок.
+ * Из полученных ссылок формирует список, элементами которого являются объекты класса LinkList
+ */
 public class LinksParser {
+    private Object m_lock = new Object();
     private LinkedList<LinkList> m_linksList;
 
     public LinksParser() {
@@ -43,6 +59,10 @@ public class LinksParser {
         return m_linksList;
     }
 
+    /**
+     * Метод загрузки и парсинга файла ссылок.
+     * @param linksFileName - имя файла, содержащего ссылки на скачиваемые файлы
+     */
     public void loadLinksFile(String linksFileName) throws IOException {
         BufferedReader fileReader;
         fileReader = new BufferedReader(new FileReader(linksFileName));
@@ -60,6 +80,12 @@ public class LinksParser {
         while (line != null);
     }
 
+    /**
+     * Метод добавления к ссылке имени файла для сохранения.
+     * Если указанная ссылка уже существует в списке, то происходит подключение имени файла к уже имеющейся ссылке.
+     * @param link          - URL файла для скачивания;
+     * @param fileName      - имя файла для сохранения данных
+     */
     private void addLink(String link, String fileName) {
         int linkCounter = 0;
         for (LinkList linkUnit : m_linksList) {
@@ -72,9 +98,14 @@ public class LinksParser {
         m_linksList.add(new LinkList(link, fileName));
     }
 
+    /**
+     * Метод получения очередной ссылки. Производит чтение и удаление очередной ссылки из списка ссылок.
+     * Для предотвращения конфликтов при обращении к списку ссылок несколькими потоками используется синхронизация
+     * @return - объект класса LinkList, содержащий очередную ссылку и список файлов для сохранения на диске
+     */
     public LinkList getNextLink() {
         LinkList link = null;
-        synchronized (this) {
+        synchronized (m_lock) {
             if (m_linksList.size() > 0) {
                 link = m_linksList.get(0);
                 m_linksList.remove(0);
@@ -83,7 +114,12 @@ public class LinksParser {
         return link;
     }
 
-    boolean isValidURL(String url) {
+    /**
+     * Метод проверки URL на корректность.
+     * @param url           - URL для проверки на корректность
+     * @return               - результат проверки URL: true - URL корректен, false - URL неправильный
+     */
+    private boolean isValidURL(String url) {
         try {
             new URI(url).parseServerAuthority();
             return true;

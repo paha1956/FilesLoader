@@ -1,3 +1,10 @@
+/**
+ * Утилита параллельной загрузки файлов по HTTP протоколу.
+ *
+ * @version 0.1
+ * @autor Федоров Павел, гр. 124/21 ИТМО 25.11.2019
+ */
+
 package com.company;
 
 import java.util.ArrayList;
@@ -9,7 +16,6 @@ import static com.company.ArgsParser.ARGS_HELP;
 public class Main {
 
     public static void main(String[] args) throws InterruptedException {
-        // write your code here
 
         ArgsParser argsParser = new ArgsParser(args);
 

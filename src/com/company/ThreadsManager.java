@@ -1,3 +1,4 @@
+
 package com.company;
 
 import java.io.IOException;
@@ -8,6 +9,12 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * Класс запуска потоков и мониторинга их работы.
+ *
+ * @version 0.1
+ * @autor Федоров Павел, гр. 124/21 ИТМО 25.11.2019
+ */
 public class ThreadsManager implements EventListener {
 
     private ArgsParser m_argsParser;
@@ -21,9 +28,6 @@ public class ThreadsManager implements EventListener {
     private int m_filesCounter;
     private long m_totalOpTime;
 
-    public ThreadsManager() {
-    }
-
     public ThreadsManager(ArgsParser argsParser) {
         m_argsParser = argsParser;
         m_threadList = new ArrayList<>();
@@ -36,17 +40,31 @@ public class ThreadsManager implements EventListener {
         m_totalOpTime = 0;
     }
 
+    /**
+     * Метод приёма события от потока
+     * @param threadID        - логический идентификатор потока, вызвавшего событие;
+     * @param fileURL         - URL текущего загружаемого потоком файла;
+     * @param opTime          - текущее время события в формате UTC;
+     * @param loadingComplete - флаг окончания загрузки
+     */
     @Override
-    public void getEvent(int threadID, String fileURL, long fileSize, long opTime) {
-        m_filesSize += fileSize;
-        m_filesLoadTime += opTime;
-        m_filesCounter++;
-
+    public void getEvent(int threadID, String fileURL, long fileSize, long opTime, boolean loadingComplete) {
         DateFormat timeFormat = new SimpleDateFormat("HHч mmмин ssсек.");
         timeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        System.out.println("Поток " + threadID + ". Файл " + fileURL + " загружен: " + sizeConverter(fileSize) + "Байт за " + timeFormat.format(new Date(opTime)));
+        opTime = System.currentTimeMillis() - opTime;
+        if (loadingComplete) {
+            m_filesSize += fileSize;
+            m_filesLoadTime += opTime;
+            m_filesCounter++;
+            System.out.println("Поток " + threadID + ". Файл " + fileURL + " загружен: " + sizeConverter(fileSize) + "Байт за " + timeFormat.format(new Date(opTime)));
+        } else
+            System.out.println("Поток " + threadID + ". Файл " + fileURL + ", загружено " + sizeConverter(fileSize) + "Байт, время загрузки " + timeFormat.format(new Date(opTime)));
     }
 
+    /**
+     * Метод запуска потоков
+     * @return - количество запущенных потоков
+     */
     public int threadsStart() {
         try {
             m_linksParser.loadLinksFile(m_argsParser.getLinksFileName());
@@ -69,6 +87,11 @@ public class ThreadsManager implements EventListener {
         return threadCounter;
     }
 
+    /**
+     * Метод мониторинга работы потоков
+     *
+     * @throws InterruptedException
+     */
     public void threadsMonitoring() throws InterruptedException {
         if (m_threadLatch == null) return;
         m_threadLatch.await();
@@ -80,13 +103,21 @@ public class ThreadsManager implements EventListener {
         System.out.println("Время загрузки: " + timeFormat.format(new Date(m_totalOpTime)));
         if (m_totalOpTime > 0)
             System.out.println("Скорость многопоточной загрузки: " + sizeConverter((m_filesSize * 8 * 1000) / m_totalOpTime) + "Бит в секунду");
-        else System.out.println("Скорость многопоточной загрузки: очень быстро! На самом деле, что-то пошло не так и время загрузки оказалось нулевым.");
+        else
+            System.out.println("Скорость многопоточной загрузки: очень быстро! На самом деле, что-то пошло не так и время загрузки оказалось нулевым.");
 
-        if (m_totalOpTime > 0)
+        if (m_filesLoadTime > 0)
             System.out.println("Средняя физическая скорость загрузки: " + sizeConverter((m_filesSize * 8 * 1000) / m_filesLoadTime) + "Бит в секунду");
-        else System.out.println("Средняя скорость загрузки: неимоверно быстро! На самом деле, что-то пошло не так и время загрузки оказалось нулевым.");
+        else
+            System.out.println("Средняя скорость загрузки: неимоверно быстро! На самом деле, что-то пошло не так и время загрузки оказалось нулевым.");
     }
 
+    /**
+     * Метод для приведения объёма файла к сокращённому формату (байты - в килобайты, мегабайты и гигабайты)
+     *
+     * @param size - размер файла, байт
+     * @return строка, содержащая приведённый к сокращённому формату размер файла
+     */
     private String sizeConverter(long size) {
         if (size < 0) return "-1 ";
         String[] lb = {" ", " к", " М", " Г"};
