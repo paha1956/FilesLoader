@@ -42,27 +42,48 @@ public class ThreadsManager implements EventListener {
 
     /**
      * Метод приёма события от потока
-     * @param threadID        - логический идентификатор потока, вызвавшего событие;
-     * @param fileURL         - URL текущего загружаемого потоком файла;
-     * @param opTime          - текущее время события в формате UTC;
-     * @param loadingComplete - флаг окончания загрузки
+     *
+     * @param threadID              - логический идентификатор потока, вызвавшего событие;
+     * @param fileURL               - URL текущего загружаемого потоком файла;
+     * @param opTime                - текущее время события в формате UTC;
+     * @param loadingStatus         - статус загрузки файла:
+     *                                EVLST_LDCOMPLETE - загрузка завершена;
+     *                                EVLST_LDCONTINUE - загрузка продолжается;
+     *                                EVLST_LDFROZEN   - остановка загрузки по неизвестной причине
      */
     @Override
-    public void getEvent(int threadID, String fileURL, long fileSize, long opTime, boolean loadingComplete) {
+    public void getEvent(int threadID, String fileURL, long fileSize, long opTime, int loadingStatus) {
         DateFormat timeFormat = new SimpleDateFormat("HHч mmмин ssсек.");
         timeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         opTime = System.currentTimeMillis() - opTime;
-        if (loadingComplete) {
-            m_filesSize += fileSize;
-            m_filesLoadTime += opTime;
-            m_filesCounter++;
-            System.out.println("Поток " + threadID + ". Файл " + fileURL + " загружен: " + sizeConverter(fileSize) + "Байт за " + timeFormat.format(new Date(opTime)));
-        } else
-            System.out.println("Поток " + threadID + ". Файл " + fileURL + ", загружено " + sizeConverter(fileSize) + "Байт, время загрузки " + timeFormat.format(new Date(opTime)));
+        switch (loadingStatus) {
+            case EVLST_LDCOMPLETE: {
+                m_filesSize += fileSize;
+                m_filesLoadTime += opTime;
+                m_filesCounter++;
+                System.out.println("Поток " + threadID + ". Файл " + fileURL + " загружен: " + sizeConverter(fileSize) + "Байт за " + timeFormat.format(new Date(opTime)));
+                break;
+            }
+
+            case EVLST_LDCONTINUE: {
+                System.out.println("Поток " + threadID + ". Файл " + fileURL + ", загружено " + sizeConverter(fileSize) + "Байт, время загрузки " + timeFormat.format(new Date(opTime)));
+                break;
+            }
+
+            case EVLST_LDFROZEN: {
+                System.out.println("Поток " + threadID + ". Ой, всё... Что-то пошло не так и файл " + fileURL + " устал. Было загружено " + sizeConverter(fileSize) + "Байт за время " + timeFormat.format(new Date(opTime)));
+                break;
+            }
+
+            default: {
+                System.out.println("Поток " + threadID + ". Неизвестный код события " + loadingStatus);
+                break;
+            }
+        }
     }
 
     /**
-     * Метод запуска потоков
+     * Метод запуска потоков загрузки файлов
      * @return - количество запущенных потоков
      */
     public int threadsStart() {
@@ -122,7 +143,7 @@ public class ThreadsManager implements EventListener {
         if (size < 0) return "-1 ";
         String[] lb = {" ", " к", " М", " Г"};
         int index = 0;
-        while (size > 1024 && index < lb.length - 1) {
+        while (size >= 1024 && index < lb.length - 1) {
             size = size >> 10;
             index++;
         }

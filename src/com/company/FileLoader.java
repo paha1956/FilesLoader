@@ -16,6 +16,8 @@ import java.util.concurrent.CountDownLatch;
 public class FileLoader extends Thread {
 
     public static final int LOADING_BUFFER_SIZE = 128000;
+    public static final int MAX_LOADTRY_COUNTER = 3;
+    public static final int LOAD_MONITORING_PERIOD_MS = 10000;
 
     private int m_threadID;
     private LinksParser m_linksParser;
@@ -25,11 +27,12 @@ public class FileLoader extends Thread {
 
     /**
      * Конструктор класса FileLoader
-     * @param threadID        - логический идентификатор потока;
-     * @param linksParser     - объект, хранящий ссылки для скачивания и имена сохраняемых файлов;
-     * @param argsParser      - объект входных параметров;
-     * @param eventHandler    - объект обработки событий;
-     * @param latch           - объект слежения за окончанием выполнения потоков
+     *
+     * @param threadID     - логический идентификатор потока;
+     * @param linksParser  - объект, хранящий ссылки для скачивания и имена сохраняемых файлов;
+     * @param argsParser   - объект входных параметров;
+     * @param eventHandler - объект обработки событий;
+     * @param latch        - объект слежения за окончанием выполнения потоков
      */
     public FileLoader(int threadID, LinksParser linksParser, ArgsParser argsParser, EventHandler eventHandler, CountDownLatch latch) {
         m_threadID = threadID;
@@ -50,6 +53,9 @@ public class FileLoader extends Thread {
         while ((loadLink = m_linksParser.getNextLink()) != null) {
             long begTime = System.currentTimeMillis();
             long fileSize = 0;
+            long previousFileSize = 0;
+            int frozenLoadingCounter = 0;
+            outputStreamList.clear();
 
             ArrayList<String> filesList = loadLink.getFilesList();
             try {
@@ -71,13 +77,26 @@ public class FileLoader extends Thread {
                     int availableSize = inputStream.available();
                     if (availableSize > LOADING_BUFFER_SIZE) availableSize = LOADING_BUFFER_SIZE;
                     int readSize = inputStream.read(readBuffer, 0, availableSize);
-                    if (readSize < 0) break;
+                    if (readSize < 0){
+                        m_eventHandler.sendEvent(m_threadID, loadLink.getLink(), fileSize, begTime, EventListener.EVLST_LDCOMPLETE);
+                        break;
+                    }
 
                     long currentTime = System.currentTimeMillis();
-                    if ((currentTime - fileLoadTime) > 10000) {
+                    if ((currentTime - fileLoadTime) > LOAD_MONITORING_PERIOD_MS) {
                         fileLoadTime = currentTime;
-                        m_eventHandler.sendEvent(m_threadID, loadLink.getLink(), fileSize, begTime, false);
-                   }
+                        if (previousFileSize != fileSize) {
+                            frozenLoadingCounter = 0;
+                            previousFileSize = fileSize;
+                        } else {
+                            frozenLoadingCounter++;
+                            if (frozenLoadingCounter > MAX_LOADTRY_COUNTER) {
+                                m_eventHandler.sendEvent(m_threadID, loadLink.getLink(), fileSize, begTime, EventListener.EVLST_LDFROZEN);
+                                break;
+                            }
+                        }
+                        m_eventHandler.sendEvent(m_threadID, loadLink.getLink(), fileSize, begTime, EventListener.EVLST_LDCONTINUE);
+                    }
 
                     fileSize += readSize;
                     for (OutputStream outputStream : outputStreamList) {
@@ -91,9 +110,6 @@ public class FileLoader extends Thread {
                 }
 
                 inputStream.close();
-
-                m_eventHandler.sendEvent(m_threadID, loadLink.getLink(), fileSize, begTime, true);
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
