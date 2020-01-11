@@ -8,9 +8,10 @@ package com.company;
  */
 public interface EventListener {
 
-    public static final int EVLST_LDCOMPLETE = 1;
-    public static final int EVLST_LDCONTINUE = 2;
-    public static final int EVLST_LDFROZEN = 3;
+    public static final int EVLST_LDBEGINNING = 1;
+    public static final int EVLST_LDCOMPLETE = 2;
+    public static final int EVLST_LDCONTINUE = 3;
+    public static final int EVLST_LDFROZEN = 4;
 
     /**
      * Получение события.
@@ -18,11 +19,12 @@ public interface EventListener {
      * @param threadID              - логический идентификатор потока, передающего событие;
      * @param fileURL               - URL закачиваемого файла;
      * @param fileSize              - объём загруженных данных;
+     * @param contentLength         - полный объём файла;
      * @param opTime                - текущее время загрузки;
      * @param loadingStatus         - статус загрузки файла:
      *                                EVLST_LDCOMPLETE - загрузка завершена;
      *                                EVLST_LDCONTINUE - загрузка продолжается;
      *                                EVLST_LDFROZEN   - остановка загрузки по неизвестной причине
      */
-    public void getEvent(int threadID, String fileURL, long fileSize, long opTime, int loadingStatus);
+    public void getEvent(int threadID, String fileURL, long fileSize, long contentLength, long opTime, int loadingStatus);
 }

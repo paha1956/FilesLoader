@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Класс загрузки файла из сети и записи его на диск в папку, записанную в m_linksParser.
@@ -17,13 +16,12 @@ public class FileLoader extends Thread {
 
     public static final int LOADING_BUFFER_SIZE = 128000;
     public static final int MAX_LOADTRY_COUNTER = 3;
-    public static final int LOAD_MONITORING_PERIOD_MS = 10000;
+    public static final int LOAD_MONITORING_PERIOD_MS = 1000;
 
     private int m_threadID;
-    private LinksParser m_linksParser;
     private ArgsParser m_argsParser;
+    private LinksParser m_linksParser;
     private EventHandler m_eventHandler;
-    private CountDownLatch m_threadLatch;
 
     /**
      * Конструктор класса FileLoader
@@ -32,14 +30,12 @@ public class FileLoader extends Thread {
      * @param linksParser  - объект, хранящий ссылки для скачивания и имена сохраняемых файлов;
      * @param argsParser   - объект входных параметров;
      * @param eventHandler - объект обработки событий;
-     * @param latch        - объект слежения за окончанием выполнения потоков
      */
-    public FileLoader(int threadID, LinksParser linksParser, ArgsParser argsParser, EventHandler eventHandler, CountDownLatch latch) {
+    public FileLoader(int threadID, LinksParser linksParser, ArgsParser argsParser, EventHandler eventHandler) {
         m_threadID = threadID;
         m_linksParser = linksParser;
         m_argsParser = argsParser;
         m_eventHandler = eventHandler;
-        m_threadLatch = latch;
     }
 
     /**
@@ -64,12 +60,17 @@ public class FileLoader extends Thread {
                     collectNames += " " + fileName;
                     outputStreamList.add(new FileOutputStream((m_argsParser.getOutDirName() + "\\" + fileName)));
                 }
-                System.out.println("Поток " + m_threadID + ". Загрузка файла: " + loadLink.getLink() + ((filesList.size() > 1) ? " в файлы" : " в файл") + collectNames);
 
                 URL url = new URL(loadLink.getLink());
                 URLConnection urlConnection = url.openConnection();
                 urlConnection.setDoInput(true);
+
+                long loadFileSize;
+                loadFileSize = urlConnection.getContentLength();
                 InputStream inputStream = urlConnection.getInputStream();
+
+                ProgGUI.dataOut("Поток " + m_threadID + ". Загрузка файла: " + loadLink.getLink() + "(" + ThreadsManager.sizeConverter(loadFileSize) + "Байт) " + ((filesList.size() > 1) ? " в файлы" : " в файл") + collectNames);
+                m_eventHandler.sendEvent(m_threadID, loadLink.getLink(), 0, loadFileSize,0, EventListener.EVLST_LDBEGINNING);
 
                 byte[] readBuffer = new byte[LOADING_BUFFER_SIZE];
                 long fileLoadTime = System.currentTimeMillis();
@@ -78,7 +79,7 @@ public class FileLoader extends Thread {
                     if (availableSize > LOADING_BUFFER_SIZE) availableSize = LOADING_BUFFER_SIZE;
                     int readSize = inputStream.read(readBuffer, 0, availableSize);
                     if (readSize < 0){
-                        m_eventHandler.sendEvent(m_threadID, loadLink.getLink(), fileSize, begTime, EventListener.EVLST_LDCOMPLETE);
+                        m_eventHandler.sendEvent(m_threadID, loadLink.getLink(), fileSize, loadFileSize, begTime, EventListener.EVLST_LDCOMPLETE);
                         break;
                     }
 
@@ -91,11 +92,11 @@ public class FileLoader extends Thread {
                         } else {
                             frozenLoadingCounter++;
                             if (frozenLoadingCounter > MAX_LOADTRY_COUNTER) {
-                                m_eventHandler.sendEvent(m_threadID, loadLink.getLink(), fileSize, begTime, EventListener.EVLST_LDFROZEN);
+                                m_eventHandler.sendEvent(m_threadID, loadLink.getLink(), fileSize, loadFileSize, begTime, EventListener.EVLST_LDFROZEN);
                                 break;
                             }
                         }
-                        m_eventHandler.sendEvent(m_threadID, loadLink.getLink(), fileSize, begTime, EventListener.EVLST_LDCONTINUE);
+                        m_eventHandler.sendEvent(m_threadID, loadLink.getLink(), fileSize, loadFileSize, begTime, EventListener.EVLST_LDCONTINUE);
                     }
 
                     fileSize += readSize;
@@ -114,7 +115,5 @@ public class FileLoader extends Thread {
                 e.printStackTrace();
             }
         }
-
-        m_threadLatch.countDown();
     }
 }

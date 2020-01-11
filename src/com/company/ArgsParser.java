@@ -1,6 +1,11 @@
 package com.company;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 
 /**
@@ -11,84 +16,113 @@ import java.util.ArrayList;
  */
 public class ArgsParser {
 
+    public static final int THREADS_NUM = 7;
+
     public static final int ARGS_OK = 1;
     public static final int ARGS_ERROR = 2;
     public static final int ARGS_HELP = 3;
 
+    class ConfigList{
+        private String userName;
+        private String serverURL;
+        private String outDirName;
+        private String linksFileName;
+
+        public String getUserName() { return userName; }
+        public String getServerURL() { return serverURL; }
+        public String getOutDirName() { return outDirName; }
+        public String getLinksFileName() { return linksFileName; }
+    }
+
     private String m_args[];
     private ArrayList<String> m_errors;
-    private int m_numThreads = 0;
+    private String m_userName;
+    private String m_serverURL;
+    private int m_numThreads;
     private String m_outDirName;
     private String m_linksFileName;
 
     public ArgsParser(String[] args) {
         m_args = args;
         m_errors = new ArrayList<>();
-        m_numThreads = 0;
+        m_numThreads = THREADS_NUM;
         m_outDirName = "";
         m_linksFileName = "";
-
+        m_errors.clear();
     }
 
     public ArrayList getErrors() {
         return m_errors;
     }
-
+    public String getUserName() { return m_userName; }
+    public String getServerURL() { return m_serverURL; }
     public int getNumThreads() {
         return m_numThreads;
     }
-
     public String getOutDirName() {
         return m_outDirName;
     }
-
     public String getLinksFileName() {
         return m_linksFileName;
     }
 
     /**
      * Метод парсинга параметров
-     * @return              - результат расшифровки входных параметров:
-     *                        ARGS_OK - параметры расшифровались без ошибок;
-     *                        ARGS_ERROR - параметры содержат ошибку, содержание ошибки записывается в поле m_errors;
-     *                        ARGS_HELP - требуется вывод справки по программе
+     *
+     * @return - результат расшифровки входных параметров:
+     * ARGS_OK - параметры расшифровались без ошибок;
+     * ARGS_ERROR - параметры содержат ошибку, содержание ошибки записывается в поле m_errors;
+     * ARGS_HELP - требуется вывод справки по программе
      */
     public int getArgsProperty() {
         int res = ARGS_OK;
 
-        if (m_args.length == 0) {
-            m_errors.add("  - параметры отсутствуют");
-            return ARGS_ERROR;
-        }
-
-        if (m_args.length != 3) {
-            if (m_args.length == 1) {
-                if (m_args[0].equalsIgnoreCase("?") || m_args[0].equalsIgnoreCase("help"))
-                    return ARGS_HELP;
-            }
-
-            m_errors.add("  - неправильное количество параметров");
-            return ARGS_ERROR;
-        }
-
+        BufferedReader fileReader;
+        String configData = "";
         try {
-            m_numThreads = Integer.parseInt(m_args[0]);
-        } catch (NumberFormatException e) {
-            m_errors.add("  - количество потоков неопределено");
-            res = ARGS_ERROR;
+            fileReader = new BufferedReader(new FileReader("D:\\Share\\config.json"));
+            String line;
+            do {
+                line = fileReader.readLine();
+                if (line != null) {
+                    configData += line;
+                }
+            }
+            while (line != null);
+        } catch (Exception e) {
+            m_errors.add("  - ошибка чтения файла конфигурации");
+            return ARGS_ERROR;
         }
 
-        if (m_numThreads <= 0) {
-            m_errors.add("  - количество потоков должно быть больше нуля");
-            res = ARGS_ERROR;
+        Gson jsonConfig = new Gson();
+        try {
+            ConfigList config = jsonConfig.fromJson(configData, ConfigList.class);
+            m_userName = config.getUserName();
+            m_serverURL = config.getServerURL();
+            m_outDirName = config.getOutDirName();
+            m_linksFileName = config.getLinksFileName();
+        } catch (JsonSyntaxException e){
+            m_errors.add("  - неправильная структура файла конфигурации");
+            return ARGS_ERROR;
         }
 
-        m_outDirName = m_args[1];
+        if (m_userName == null)      { m_errors.add("  - ошибка поля userName файла конфигурации"); }
+        if (m_serverURL == null)     { m_errors.add("  - ошибка поля serverURL файла конфигурации"); }
+        if (m_outDirName == null)    { m_errors.add("  - ошибка поля outDirName файла конфигурации"); }
+        if (m_linksFileName == null) { m_errors.add("  - ошибка поля linksFileName файла конфигурации"); }
 
-        File file = new File(m_args[2]);
-        if (file.isFile())
-            m_linksFileName = m_args[2];
-        else {
+        if (m_errors.size() > 0) {
+            return ARGS_ERROR;
+        }
+
+        if (m_args.length == 1) {
+            if (m_args[0].equalsIgnoreCase("?") || m_args[0].equalsIgnoreCase("help")) {
+                return ARGS_HELP;
+            }
+        }
+
+        File file = new File(m_linksFileName);
+        if (!file.isFile()) {
             m_errors.add("  - указанного файла со списком ссылок не существует");
             res = ARGS_ERROR;
         }
@@ -98,9 +132,10 @@ public class ArgsParser {
 
     /**
      * Метод вывода справки по программе
-     * @param help          - определяет формат выводимого текста:
-     *                        true - вывод формата командной строки запуска программы;
-     *                        false - вывод списка управляющих ключей
+     *
+     * @param help - определяет формат выводимого текста:
+     *             true - вывод формата командной строки запуска программы;
+     *             false - вывод списка управляющих ключей
      */
     public void printHelp(boolean help) {
         if (help) {

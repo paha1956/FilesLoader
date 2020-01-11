@@ -8,36 +8,38 @@
 package com.company;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
-import static com.company.ArgsParser.ARGS_OK;
-import static com.company.ArgsParser.ARGS_ERROR;
-import static com.company.ArgsParser.ARGS_HELP;
+import static com.company.ArgsParser.*;
 
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, ExecutionException{
+
+        ProgGUI.setDefaultLookAndFeelDecorated(true);
+
+        ProgGUI progGUI = new ProgGUI("Файловый загрузчик");
 
         ArgsParser argsParser = new ArgsParser(args);
-
         switch (argsParser.getArgsProperty()) {
             case ARGS_OK: {
-                System.out.println("Установленное количество потоков: " + argsParser.getNumThreads());
-                System.out.println("Каталог закачки: " + argsParser.getOutDirName());
-                System.out.println("Файл со списком закачки: " + argsParser.getLinksFileName());
+                ProgGUI.dataOut("Установленное количество потоков: " + argsParser.getNumThreads());
+                ProgGUI.dataOut("Каталог закачки: " + argsParser.getOutDirName());
+                ProgGUI.dataOut("Файл со списком закачки: " + argsParser.getLinksFileName());
 
-                ThreadsManager threadsManager = new ThreadsManager(argsParser);
-                int runingThreads = threadsManager.threadsStart();
-                System.out.println("Запущено потоков: " + runingThreads + "\nНачало загрузки файлов...");
+                ThreadsManager threadsManager = new ThreadsManager(argsParser, progGUI);
+
+                progGUI.attach(threadsManager);
 
                 threadsManager.threadsMonitoring();
                 break;
             }
 
             case ARGS_ERROR: {
-                System.out.println("Ошибка параметров:");
+                ProgGUI.dataOut("Ошибка параметров:");
                 ArrayList<String> errorList = argsParser.getErrors();
                 for (String error : errorList) {
-                    System.out.println(error);
+                    ProgGUI.dataOut(error);
                 }
                 argsParser.printHelp(false);
                 break;
@@ -49,5 +51,6 @@ public class Main {
                 break;
             }
         }
+
     }
 }
