@@ -18,9 +18,9 @@ public class Main {
 
         ProgGUI.setDefaultLookAndFeelDecorated(true);
 
-        ProgGUI progGUI = new ProgGUI("Файловый загрузчик");
-
         ArgsParser argsParser = new ArgsParser(args);
+        ProgGUI progGUI = new ProgGUI("Файловый загрузчик", argsParser);
+
         switch (argsParser.getArgsProperty()) {
             case ARGS_OK: {
                 ProgGUI.dataOut("Установленное количество потоков: " + argsParser.getNumThreads());
@@ -28,7 +28,6 @@ public class Main {
                 ProgGUI.dataOut("Файл со списком закачки: " + argsParser.getLinksFileName());
 
                 ThreadsManager threadsManager = new ThreadsManager(argsParser, progGUI);
-
                 progGUI.attach(threadsManager);
 
                 threadsManager.threadsMonitoring();
