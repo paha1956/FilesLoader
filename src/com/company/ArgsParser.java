@@ -22,17 +22,7 @@ public class ArgsParser {
     public static final int ARGS_ERROR = 2;
     public static final int ARGS_HELP = 3;
 
-    class ConfigList{
-        private String userName;
-        private String serverURL;
-        private String outDirName;
-        private String linksFileName;
-
-        public String getUserName() { return userName; }
-        public String getServerURL() { return serverURL; }
-        public String getOutDirName() { return outDirName; }
-        public String getLinksFileName() { return linksFileName; }
-    }
+    public static final String CONFIG_URL = "D:\\Share\\config.json";
 
     private String m_args[];
     private ArrayList<String> m_errors;
@@ -80,7 +70,7 @@ public class ArgsParser {
         BufferedReader fileReader;
         String configData = "";
         try {
-            fileReader = new BufferedReader(new FileReader("D:\\Share\\config.json"));
+            fileReader = new BufferedReader(new FileReader(CONFIG_URL));
             String line;
             do {
                 line = fileReader.readLine();
@@ -139,13 +129,13 @@ public class ArgsParser {
      */
     public void printHelp(boolean help) {
         if (help) {
-            System.out.println("\nФормат командной строки:\n" +
+            ProgGUI.dataOut("\nФормат командной строки:\n" +
                     "java -jar floader.jar <thread_num> <output_folder> <links_file>\n" +
                     "где:  thread_num    - максимальное количество запускаемых потоков;\n" +
                     "      output_folder - каталог для сохранения файлов;\n" +
                     "      links_file    - текстовый файл, содержащий ссылки на скачиваемые файлы.");
         } else {
-            System.out.println("\nДля вывода помощи запустите программу с параметром ? или help\n" +
+            ProgGUI.dataOut("\nДля вывода помощи запустите программу с параметром ? или help\n" +
                     "Например:    java -jar floader.jar ?\n" +
                     "или          java -jar floader.jar help");
         }

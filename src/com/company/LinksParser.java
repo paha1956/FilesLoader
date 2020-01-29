@@ -81,6 +81,7 @@ public class LinksParser {
             }
         }
         while (line != null);
+        fileReader.close();
     }
 
     /**

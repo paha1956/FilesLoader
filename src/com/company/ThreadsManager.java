@@ -186,11 +186,13 @@ public class ThreadsManager implements EventListener {
      */
     public void threadsMonitoring() throws InterruptedException, ExecutionException {
         while (m_threadList.size() == 0){;}
+
         m_executor.shutdown();
         for (Future unit : m_threadList) {
             unit.get();
         }
 
+        m_progGUI.enableStart();
         m_totalOpTime = System.currentTimeMillis() - m_totalOpTime;
         ProgGUI.dataOut("Загружено файлов: " + m_filesCounter + " объёмом " + sizeConverter(m_filesSize) + "Байт");
         DateFormat timeFormat = new SimpleDateFormat("HHч mmмин ssсек");

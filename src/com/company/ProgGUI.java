@@ -2,17 +2,13 @@ package com.company;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 
 import javax.swing.*;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
 
 public class ProgGUI extends JFrame {
 
@@ -22,8 +18,18 @@ public class ProgGUI extends JFrame {
     private static final String SAVE_PRESSED = "Save";
     private static final String CANCEL_PRESSED = "Cancel";
 
-    private final String REFERENCE_TEXT = "<html><b><u>Текст1<br>Текст2<br>Текст3<br>Текст4<br></u></b>Текст5<br>Текст6<br>Текст7<br>Текст8<br>Текст9</html>";
-    private final String ABOUT_TEXT = "<html><b><u>Файловый загрузчик<br><br></u></b>Кого ругать: Фёдоров Павел<br>Где ругать: ИТМО, группа 124/21<br>Когда ругать: 2020 г.</html>";
+    private final String REFERENCE_TEXT = "<html><b><u>Настройки программы.</b></u><b><br><br>" +
+            "Путь к файлу coonfig.json:</b><br>" + ArgsParser.CONFIG_URL +
+            "<b><br><br>Формат файла config.json:</b>" +
+            "<br>{<br>\"\"userName\": \"имя пользователя\",<br>" +
+            "\"serverURL\": \"http://URL сервера:8080\",<br>" +
+            "\"outDirName\": \"путь к выходной директории\",<br>" +
+            "\"linksFileName\": \"путь к файлу со списком загрузки\"<br>" +
+            "}</html>";
+    private final String ABOUT_TEXT = "<html><b><u>Файловый загрузчик<br><br></u></b>" +
+            "Кого ругать: Фёдоров Павел<br>" +
+            "Где ругать: ИТМО, группа 124/21<br>" +
+            "Когда ругать: 2020 г.</html>";
 
     class ProgressBarData {
         private JLabel m_label;
