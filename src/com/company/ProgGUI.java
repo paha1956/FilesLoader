@@ -77,7 +77,7 @@ public class ProgGUI extends JFrame {
                 String JSON = gsonBuilder.toJson(configRecord);
 
                 try {
-                    OutputStream outputStream = new FileOutputStream("F:\\Share\\config.json");
+                    OutputStream outputStream = new FileOutputStream(ArgsParser.CONFIG_URL);
                     String data = JSON;
                     outputStream.write(data.getBytes(), 0, data.length());
                     outputStream.close();
@@ -263,6 +263,7 @@ public class ProgGUI extends JFrame {
             height = 90;
         }
         m_setLinksFrame.setPreferredSize(new Dimension(width, height));
+        m_setLinksFrame.setTitle(title);
 
         m_setLinksTextArea = new JTextArea();
         JScrollPane scrollPane = new JScrollPane(m_setLinksTextArea);
@@ -298,6 +299,7 @@ public class ProgGUI extends JFrame {
             height = 90;
         }
         m_configFrame.setPreferredSize(new Dimension(width, height));
+        m_configFrame.setTitle(title);
 
         JLabel userNameLabel = new JLabel("Имя пользователя:");
         JLabel serverURLLabel = new JLabel("URL сервера:");
@@ -308,7 +310,7 @@ public class ProgGUI extends JFrame {
         BufferedReader fileReader;
         String configData = "";
         try {
-            fileReader = new BufferedReader(new FileReader("F:\\Share\\config.json"));
+            fileReader = new BufferedReader(new FileReader(ArgsParser.CONFIG_URL));
             String line;
             do {
                 line = fileReader.readLine();

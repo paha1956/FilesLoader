@@ -129,11 +129,11 @@ public class ArgsParser {
      */
     public void printHelp(boolean help) {
         if (help) {
-            ProgGUI.dataOut("\nФормат командной строки:\n" +
-                    "java -jar floader.jar <thread_num> <output_folder> <links_file>\n" +
-                    "где:  thread_num    - максимальное количество запускаемых потоков;\n" +
-                    "      output_folder - каталог для сохранения файлов;\n" +
-                    "      links_file    - текстовый файл, содержащий ссылки на скачиваемые файлы.");
+            ProgGUI.dataOut("\nОшибка конфигурации. Формат файла конфигурации config.json:\n" +
+                    "{\n\"userName\": \"имя пользователя\",\n" +
+                    "\"serverURL\": \"http://URL сервера:8080\",\n" +
+                    "\"outDirName\": \"путь к выходной директории\",\n" +
+                    "\"linksFileName\": \"путь к файлу со списком загрузки\"\n}");
         } else {
             ProgGUI.dataOut("\nДля вывода помощи запустите программу с параметром ? или help\n" +
                     "Например:    java -jar floader.jar ?\n" +

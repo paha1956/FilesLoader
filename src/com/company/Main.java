@@ -40,13 +40,13 @@ public class Main {
                 for (String error : errorList) {
                     ProgGUI.dataOut(error);
                 }
-                argsParser.printHelp(false);
+                argsParser.printHelp(true);
                 break;
             }
 
             default:
             case ARGS_HELP: {
-                argsParser.printHelp(true);
+                argsParser.printHelp(false);
                 break;
             }
         }
