@@ -1,0 +1,9 @@
+http://speedtest.ftp.otenet.gr/files/test10Mb.db file10m.data
+http://speedtest.ftp.otenet.gr/files/test100Mb.db file100m.data
+http://laseropolis.ru/index.html laseropolis.html
+http://laseropolis.ru/index.html laseropolis1.html
+http://laseropolis.ru/index.html laseropolis2.html
+http://laseropolis.ru/index.html laseropolis3.html
+http://laseropolis.ru/gift_casket_files/halfsize_devider.jpg half.jpg
+http://laseropolis.ru/gift_casket_files/casket.gif gift.gif
+http://speedtest.ftp.otenet.gr/files/test1Gb.db file1g.data

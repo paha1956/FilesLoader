@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="FileLoader1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/FileLoader.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
