@@ -1,6 +1,7 @@
 package com.company;
 
 class ConfigList{
+    
     private String userName;
     private String serverURL;
     private String outDirName;
